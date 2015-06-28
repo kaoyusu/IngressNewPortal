@@ -2,6 +2,8 @@ package su.kaoyu.ingressnewportal;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.location.Location;
 import android.location.LocationManager;
@@ -34,6 +36,19 @@ public class MainActivity extends Activity {
             finish();
         }
         isResultFinished = true;
+
+        try {
+            PackageInfo packageInfo = getPackageManager()
+                    .getPackageInfo("com.nianticproject.ingress", PackageManager.GET_CONFIGURATIONS);
+            if (packageInfo.versionCode > 10791) {
+                Toast.makeText(this, "IngressNewPortal only support Ingress 1.79.1 now, will be upgraded as soon as possible.", Toast.LENGTH_SHORT).show();
+                finish();
+            }
+        } catch (PackageManager.NameNotFoundException e) {
+            Toast.makeText(this, "Can't found Ingress on this Phone.", Toast.LENGTH_SHORT).show();
+            e.printStackTrace();
+            finish();
+        }
     }
 
     @Override
