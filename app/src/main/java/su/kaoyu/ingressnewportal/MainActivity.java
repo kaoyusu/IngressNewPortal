@@ -26,7 +26,6 @@ public class MainActivity extends Activity {
 
     private static final int PICK_IMAGE = 1;
     private File libFile;
-    private boolean isResultFinished = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,13 +34,15 @@ public class MainActivity extends Activity {
             Toast.makeText(this, "newportal.jar copy failed", Toast.LENGTH_SHORT).show();
             finish();
         }
-        isResultFinished = true;
 
         try {
             PackageInfo packageInfo = getPackageManager()
                     .getPackageInfo("com.nianticproject.ingress", PackageManager.GET_CONFIGURATIONS);
-            if (packageInfo.versionCode > 10791) {
-                Toast.makeText(this, "IngressNewPortal only support Ingress 1.79.1 now, will be upgraded as soon as possible.", Toast.LENGTH_SHORT).show();
+            if (packageInfo.versionCode < 10791) {
+                Toast.makeText(this, "IngressNewPortal didn't support Ingress version that below 1.79.1.", Toast.LENGTH_SHORT).show();
+                finish();
+            } else if (packageInfo.versionCode > 10791) {
+                Toast.makeText(this, "IngressNewPortal didn't support Ingress version that higher than 1.79.1 now, will be upgraded as soon as possible.", Toast.LENGTH_SHORT).show();
                 finish();
             }
         } catch (PackageManager.NameNotFoundException e) {
@@ -54,14 +55,6 @@ public class MainActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        while (!isResultFinished) {
-            try {
-                Thread.sleep(500);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-                finish();
-            }
-        }
         selectPic();
     }
 
@@ -97,7 +90,6 @@ public class MainActivity extends Activity {
     }
 
     private void selectPic() {
-        isResultFinished = false;
         Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
         intent.setType("image/*");
 
@@ -175,6 +167,5 @@ public class MainActivity extends Activity {
         } else {
             finish();
         }
-        isResultFinished = true;
     }
 }
