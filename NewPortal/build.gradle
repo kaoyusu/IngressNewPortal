@@ -1,0 +1,52 @@
+import org.gradle.internal.os.OperatingSystem
+
+apply plugin: 'java'
+
+
+sourceCompatibility = "1.7"
+targetCompatibility = "1.7"
+
+def BUILD_TOOLS_VERSION = "22.0.1"
+configurations {
+    compile.extendsFrom provided
+}
+
+sourceSets {
+    main {
+        compileClasspath += configurations.provided
+    }
+}
+//tasks.withType(JavaCompile) {
+//    sourceCompatibility = "1.7"
+//    targetCompatibility = "1.7"
+//}
+dependencies {
+    provided fileTree(dir: 'libs', include: ['*.jar'])
+}
+
+String SDK_DIR = System.getenv("ANDROID_HOME")
+if (SDK_DIR == null) {
+    Properties props = new Properties()
+    props.load(new FileInputStream(project.rootProject.file("local.properties")))
+    SDK_DIR = props.get('sdk.dir');
+}
+String DEX = "${SDK_DIR}/build-tools/${BUILD_TOOLS_VERSION}/dx"
+String BUILD_TOOL_DX = OperatingSystem.current().isWindows() ? "${DEX}.bat" : "${DEX}"
+
+task makeDex(type: Exec) {
+    commandLine "${BUILD_TOOL_DX}", "--dex", "--output=build/libs/class.dex", "build/libs/NewPortal.jar"
+}
+
+task packDex(type: Jar) {
+    from "build/libs/class.dex"
+    baseName = "newportal"
+}
+
+task copyDexJar(type: Copy) {
+    from "build/libs/newportal.jar"
+    into "../app/src/main/assets/"
+}
+
+copyDexJar.dependsOn(packDex)
+packDex.dependsOn(makeDex)
+makeDex.dependsOn(jar)
