@@ -26,6 +26,8 @@ public class MainActivity extends Activity {
 
     private static final int PICK_IMAGE = 1;
     private File libFile;
+    private static final int SUPPORT_VERSION_INT = 10800;
+    private static final String SUPPORT_VERSION_STRING = "1.80.0";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,11 +40,15 @@ public class MainActivity extends Activity {
         try {
             PackageInfo packageInfo = getPackageManager()
                     .getPackageInfo("com.nianticproject.ingress", PackageManager.GET_CONFIGURATIONS);
-            if (packageInfo.versionCode < 10791) {
-                Toast.makeText(this, "IngressNewPortal didn't support Ingress version that below 1.79.1.", Toast.LENGTH_SHORT).show();
+            if (packageInfo.versionCode < SUPPORT_VERSION_INT) {
+                Toast.makeText(this,
+                        String.format("IngressNewPortal didn't support Ingress version that below %s.",
+                                SUPPORT_VERSION_STRING), Toast.LENGTH_LONG).show();
                 finish();
-            } else if (packageInfo.versionCode > 10791) {
-                Toast.makeText(this, "IngressNewPortal didn't support Ingress version that higher than 1.79.1 now, will be upgraded as soon as possible.", Toast.LENGTH_SHORT).show();
+            } else if (packageInfo.versionCode > SUPPORT_VERSION_INT) {
+                Toast.makeText(this,
+                        String.format("IngressNewPortal didn't support Ingress version that higher than %s now, will be upgraded as soon as possible.",
+                                SUPPORT_VERSION_STRING), Toast.LENGTH_LONG).show();
                 finish();
             }
         } catch (PackageManager.NameNotFoundException e) {

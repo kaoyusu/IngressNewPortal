@@ -33,7 +33,7 @@ import java.io.PrintStream;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 
-import o.lb;
+import o.ld;
 
 public class NewPortal extends BaseCommand {
 
@@ -69,7 +69,7 @@ public class NewPortal extends BaseCommand {
         String lng = nextArg();
 
         intent.putExtra("android.intent.extra.STREAM", Uri.parse(uriPath));
-        intent.putExtra("initial_lat_lng", new lb(Double.valueOf(lat), Double.valueOf(lng)));
+        intent.putExtra("initial_lat_lng", new ld(Double.valueOf(lat), Double.valueOf(lng)));
 
         String mimeType = intent.getType();
 
