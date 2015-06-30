@@ -33,6 +33,7 @@ import java.io.PrintStream;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 
+import o.lb;
 import o.ld;
 
 public class NewPortal extends BaseCommand {
@@ -67,9 +68,18 @@ public class NewPortal extends BaseCommand {
         String uriPath = nextArg();
         String lat = nextArg();
         String lng = nextArg();
+        String ingressVersion = nextArg();
+
+        if ("10791".equals(ingressVersion)) {
+            intent.putExtra("initial_lat_lng", new lb(Double.valueOf(lat), Double.valueOf(lng)));
+        } else if ("10800".equals(ingressVersion)) {
+            intent.putExtra("initial_lat_lng", new ld(Double.valueOf(lat), Double.valueOf(lng)));
+        } else {
+            System.err.println("IngressNewPortal didn't support Ingress version:" + ingressVersion);
+            return;
+        }
 
         intent.putExtra("android.intent.extra.STREAM", Uri.parse(uriPath));
-        intent.putExtra("initial_lat_lng", new ld(Double.valueOf(lat), Double.valueOf(lng)));
 
         String mimeType = intent.getType();
 

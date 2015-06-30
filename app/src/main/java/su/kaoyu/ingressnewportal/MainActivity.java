@@ -28,6 +28,7 @@ public class MainActivity extends Activity {
     private File libFile;
     private static final int SUPPORT_VERSION_INT = 10800;
     private static final String SUPPORT_VERSION_STRING = "1.80.0";
+    private int ingressVersion;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,6 +52,7 @@ public class MainActivity extends Activity {
                                 SUPPORT_VERSION_STRING), Toast.LENGTH_LONG).show();
                 finish();
             }
+            ingressVersion = packageInfo.versionCode;
         } catch (PackageManager.NameNotFoundException e) {
             Toast.makeText(this, "Can't found Ingress on this Phone.", Toast.LENGTH_SHORT).show();
             e.printStackTrace();
@@ -159,9 +161,9 @@ public class MainActivity extends Activity {
                     Toast.makeText(this, "No GPS Data found in picture, using your location", Toast.LENGTH_SHORT).show();
                     LocationManager mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
                     Location gps = mLocationManager.getLastKnownLocation("gps");
-                    cmd = String.format("export CLASSPATH=%s && exec app_process /system/bin su.kaoyu.ingress.NewPortal %s %f %f", libFile.getAbsolutePath(), Uri.fromFile(new File(path)).toString(), gps.getLatitude(), gps.getLongitude());
+                    cmd = String.format("export CLASSPATH=%s && exec app_process /system/bin su.kaoyu.ingress.NewPortal %s %f %f %d", libFile.getAbsolutePath(), Uri.fromFile(new File(path)).toString(), gps.getLatitude(), gps.getLongitude(), ingressVersion);
                 } else {
-                    cmd = String.format("export CLASSPATH=%s && exec app_process /system/bin su.kaoyu.ingress.NewPortal %s %s %s", libFile.getAbsolutePath(), Uri.fromFile(new File(path)).toString(), convertToDegree(lat), convertToDegree(lng));
+                    cmd = String.format("export CLASSPATH=%s && exec app_process /system/bin su.kaoyu.ingress.NewPortal %s %s %s %d", libFile.getAbsolutePath(), Uri.fromFile(new File(path)).toString(), convertToDegree(lat), convertToDegree(lng), ingressVersion);
                 }
                 Log.v("NewPort", cmd);
                 Runtime.getRuntime().exec(new String[]{"su", "-c", cmd});
