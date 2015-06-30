@@ -9,7 +9,7 @@ android {
         minSdkVersion 9
         targetSdkVersion 22
         versionCode 2
-        versionName "Ingress_1.79.1"
+        versionName "Ingress_1.79.1_fixed"
     }
     buildTypes {
         release {
