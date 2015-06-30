@@ -34,11 +34,11 @@ String DEX = "${SDK_DIR}/build-tools/${BUILD_TOOLS_VERSION}/dx"
 String BUILD_TOOL_DX = OperatingSystem.current().isWindows() ? "${DEX}.bat" : "${DEX}"
 
 task makeDex(type: Exec) {
-    commandLine "${BUILD_TOOL_DX}", "--dex", "--output=build/libs/class.dex", "build/libs/NewPortal.jar"
+    commandLine "${BUILD_TOOL_DX}", "--dex", "--output=build/libs/classes.dex", "build/libs/NewPortal.jar"
 }
 
 task packDex(type: Jar) {
-    from "build/libs/class.dex"
+    from "build/libs/classes.dex"
     baseName = "newportal"
 }
 
