@@ -63,7 +63,19 @@ public class MainActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        selectPic();
+
+        Intent intent = getIntent();
+        String action = intent.getAction();
+        String type = intent.getType();
+        Uri imageUri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
+
+        if (Intent.ACTION_SEND.equals(action) && type != null &&
+                type.startsWith("image/") && imageUri != null) {
+            callNewPortalLib(imageUri);
+            finish();
+        } else {
+            selectPic();
+        }
     }
 
     private boolean copyLib() {
@@ -141,6 +153,40 @@ public class MainActivity extends Activity {
         return FloatD + (FloatM / 60) + (FloatS / 3600);
     }
 
+    private void callNewPortalLib(Uri uri) {
+        String path = getRealPathFromURI(uri);
+        String lat;
+        String lng;
+        try {
+            ExifInterface exif = new ExifInterface(path);
+            lat = exif.getAttribute(ExifInterface.TAG_GPS_LATITUDE);
+            lng = exif.getAttribute(ExifInterface.TAG_GPS_LONGITUDE);
+            String cmd;
+            if (TextUtils.isEmpty(lat) || TextUtils.isEmpty(lng)) {
+                Toast.makeText(this, "No GPS Data found in picture, using your location", Toast.LENGTH_SHORT).show();
+                LocationManager mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+                Location location = mLocationManager.getLastKnownLocation("gps");
+                if (location == null) {
+                    location = mLocationManager.getLastKnownLocation("network");
+                }
+                if (location == null) {
+                    location = new Location("");
+                    location.setLatitude(30);
+                    location.setLongitude(120);
+                }
+                cmd = String.format("export CLASSPATH=%s && exec app_process /system/bin su.kaoyu.ingress.NewPortal %s %f %f %d", libFile.getAbsolutePath(), Uri.fromFile(new File(path)).toString(), location.getLatitude(), location.getLongitude(), ingressVersion);
+            } else {
+                cmd = String.format("export CLASSPATH=%s && exec app_process /system/bin su.kaoyu.ingress.NewPortal %s %s %s %d", libFile.getAbsolutePath(), Uri.fromFile(new File(path)).toString(), convertToDegree(lat), convertToDegree(lng), ingressVersion);
+            }
+            Log.v("NewPort", cmd);
+            Runtime.getRuntime().exec(new String[]{"su", "-c", cmd});
+        } catch (IOException e) {
+            Toast.makeText(this, "Error occurred on opening picture", Toast.LENGTH_SHORT).show();
+            e.printStackTrace();
+            finish();
+        }
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (resultCode == RESULT_OK && requestCode == PICK_IMAGE) {
@@ -148,30 +194,7 @@ public class MainActivity extends Activity {
                 finish();
                 return;
             }
-            Uri selectedImage = data.getData();
-            String path = getRealPathFromURI(selectedImage);
-            String lat;
-            String lng;
-            try {
-                ExifInterface exif = new ExifInterface(path);
-                lat = exif.getAttribute(ExifInterface.TAG_GPS_LATITUDE);
-                lng = exif.getAttribute(ExifInterface.TAG_GPS_LONGITUDE);
-                String cmd;
-                if (TextUtils.isEmpty(lat) || TextUtils.isEmpty(lng)) {
-                    Toast.makeText(this, "No GPS Data found in picture, using your location", Toast.LENGTH_SHORT).show();
-                    LocationManager mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-                    Location gps = mLocationManager.getLastKnownLocation("gps");
-                    cmd = String.format("export CLASSPATH=%s && exec app_process /system/bin su.kaoyu.ingress.NewPortal %s %f %f %d", libFile.getAbsolutePath(), Uri.fromFile(new File(path)).toString(), gps.getLatitude(), gps.getLongitude(), ingressVersion);
-                } else {
-                    cmd = String.format("export CLASSPATH=%s && exec app_process /system/bin su.kaoyu.ingress.NewPortal %s %s %s %d", libFile.getAbsolutePath(), Uri.fromFile(new File(path)).toString(), convertToDegree(lat), convertToDegree(lng), ingressVersion);
-                }
-                Log.v("NewPort", cmd);
-                Runtime.getRuntime().exec(new String[]{"su", "-c", cmd});
-            } catch (IOException e) {
-                Toast.makeText(this, "Error occurred on opening picture", Toast.LENGTH_SHORT).show();
-                e.printStackTrace();
-                finish();
-            }
+            callNewPortalLib(data.getData());
         } else {
             finish();
         }
