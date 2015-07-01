@@ -20,6 +20,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 
 
 public class MainActivity extends Activity {
@@ -67,11 +68,21 @@ public class MainActivity extends Activity {
         Intent intent = getIntent();
         String action = intent.getAction();
         String type = intent.getType();
-        Uri imageUri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
 
-        if (Intent.ACTION_SEND.equals(action) && type != null &&
-                type.startsWith("image/") && imageUri != null) {
-            callNewPortalLib(imageUri);
+        if (type != null && type.startsWith("image/")) {
+            if (Intent.ACTION_SEND.equals(action)) {
+                Uri imageUri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
+                if (imageUri != null) {
+                    callNewPortalLib(imageUri);
+                }
+            } else if (Intent.ACTION_SEND_MULTIPLE.equals(action)) {
+                ArrayList<Uri> imageUris = intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM);
+                if (imageUris != null) {
+                    for (Uri imageUri : imageUris) {
+                        callNewPortalLib(imageUri);
+                    }
+                }
+            }
             finish();
         } else {
             selectPic();

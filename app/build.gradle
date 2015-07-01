@@ -8,8 +8,8 @@ android {
         applicationId "su.kaoyu.ingressnewportal"
         minSdkVersion 9
         targetSdkVersion 22
-        versionCode 4
-        versionName "Ingress_1.80.0_share"
+        versionCode 5
+        versionName "Ingress_1.80.0_multi_share"
     }
     buildTypes {
         release {
