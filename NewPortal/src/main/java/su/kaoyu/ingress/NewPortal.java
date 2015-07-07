@@ -30,11 +30,11 @@ import android.util.AndroidException;
 import com.android.internal.os.BaseCommand;
 
 import java.io.PrintStream;
+import java.io.Serializable;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
-
-import o.lb;
-import o.ld;
 
 public class NewPortal extends BaseCommand {
 
@@ -68,16 +68,15 @@ public class NewPortal extends BaseCommand {
         String uriPath = nextArg();
         String lat = nextArg();
         String lng = nextArg();
-        String ingressVersion = nextArg();
 
-        if ("10791".equals(ingressVersion)) {
-            intent.putExtra("initial_lat_lng", new lb(Double.valueOf(lat), Double.valueOf(lng)));
-        } else if ("10800".equals(ingressVersion)) {
-            intent.putExtra("initial_lat_lng", new ld(Double.valueOf(lat), Double.valueOf(lng)));
-        } else {
-            System.err.println("IngressNewPortal didn't support Ingress version:" + ingressVersion);
-            return;
-        }
+        Class<?> ImmutableLocationE6Class = Class.forName("com.nianticproject.ingress.gameentity.components.ImmutableLocationE6");
+        Field latLngField = ImmutableLocationE6Class.getDeclaredField("latLng");
+        latLngField.setAccessible(true);
+
+        Constructor<?> ImmutableLocationE6ClassConstructor = ImmutableLocationE6Class.getConstructor(int.class, int.class);
+        intent.putExtra("initial_lat_lng", (Serializable) latLngField.get(
+                ImmutableLocationE6ClassConstructor.newInstance(
+                        (int) (Double.valueOf(lat) * 1000000), (int) (Double.valueOf(lng) * 1000000))));
 
         intent.putExtra("android.intent.extra.STREAM", Uri.parse(uriPath));
 

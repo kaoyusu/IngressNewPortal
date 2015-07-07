@@ -27,9 +27,7 @@ public class MainActivity extends Activity {
 
     private static final int PICK_IMAGE = 1;
     private File libFile;
-    private static final int SUPPORT_VERSION_INT = 10800;
-    private static final String SUPPORT_VERSION_STRING = "1.80.0";
-    private int ingressVersion;
+    private String ingressApkPath;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,18 +40,11 @@ public class MainActivity extends Activity {
         try {
             PackageInfo packageInfo = getPackageManager()
                     .getPackageInfo("com.nianticproject.ingress", PackageManager.GET_CONFIGURATIONS);
-            if (packageInfo.versionCode < SUPPORT_VERSION_INT) {
-                Toast.makeText(this,
-                        String.format("IngressNewPortal didn't support Ingress version that below %s.",
-                                SUPPORT_VERSION_STRING), Toast.LENGTH_LONG).show();
-                finish();
-            } else if (packageInfo.versionCode > SUPPORT_VERSION_INT) {
-                Toast.makeText(this,
-                        String.format("IngressNewPortal didn't support Ingress version that higher than %s now, will be upgraded as soon as possible.",
-                                SUPPORT_VERSION_STRING), Toast.LENGTH_LONG).show();
+            ingressApkPath = packageInfo.applicationInfo.sourceDir;
+            if (TextUtils.isDigitsOnly(ingressApkPath)) {
+                Toast.makeText(this, "Can't found Ingress on this Phone.", Toast.LENGTH_SHORT).show();
                 finish();
             }
-            ingressVersion = packageInfo.versionCode;
         } catch (PackageManager.NameNotFoundException e) {
             Toast.makeText(this, "Can't found Ingress on this Phone.", Toast.LENGTH_SHORT).show();
             e.printStackTrace();
@@ -185,9 +176,9 @@ public class MainActivity extends Activity {
                     location.setLatitude(30);
                     location.setLongitude(120);
                 }
-                cmd = String.format("export CLASSPATH=%s && exec app_process /system/bin su.kaoyu.ingress.NewPortal %s %f %f %d", libFile.getAbsolutePath(), Uri.fromFile(new File(path)).toString(), location.getLatitude(), location.getLongitude(), ingressVersion);
+                cmd = String.format("export CLASSPATH=%s:%s && exec app_process /system/bin su.kaoyu.ingress.NewPortal %s %f %f", libFile.getAbsolutePath(), ingressApkPath, Uri.fromFile(new File(path)).toString(), location.getLatitude(), location.getLongitude());
             } else {
-                cmd = String.format("export CLASSPATH=%s && exec app_process /system/bin su.kaoyu.ingress.NewPortal %s %s %s %d", libFile.getAbsolutePath(), Uri.fromFile(new File(path)).toString(), convertToDegree(lat), convertToDegree(lng), ingressVersion);
+                cmd = String.format("export CLASSPATH=%s:%s && exec app_process /system/bin su.kaoyu.ingress.NewPortal %s %s %s", libFile.getAbsolutePath(), ingressApkPath, Uri.fromFile(new File(path)).toString(), convertToDegree(lat), convertToDegree(lng));
             }
             Log.v("NewPort", cmd);
             Runtime.getRuntime().exec(new String[]{"su", "-c", cmd});
