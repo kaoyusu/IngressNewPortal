@@ -27,8 +27,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.util.AndroidException;
 
-import com.android.internal.os.BaseCommand;
-
 import java.io.PrintStream;
 import java.io.Serializable;
 import java.lang.reflect.Constructor;
@@ -36,32 +34,46 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 
-public class NewPortal extends BaseCommand {
+public class NewPortal {
 
     private IActivityManager mAm;
+    protected String[] mArgs;
+    private int mNextArg;
 
     public static void main(String[] args) {
         (new NewPortal()).run(args);
     }
 
-    @Override
-    public void onShowUsage(PrintStream out) {
-        // out.println();
+    public void run(String[] args) {
+        if (args.length < 1) {
+            return;
+        }
+        this.mArgs = args;
+        this.mNextArg = 0;
+
+        try {
+            onRun();
+        } catch (IllegalArgumentException e) {
+            System.err.println();
+            System.err.println("Error: " + e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace(System.err);
+            System.exit(1);
+        }
     }
 
-    @Override
+    public String nextArg() {
+        return this.mNextArg < this.mArgs.length ? this.mArgs[this.mNextArg++] : null;
+    }
+
     public void onRun() throws Exception {
 
         mAm = ActivityManagerNative.getDefault();
         if (mAm == null) {
-            System.err.println(NO_SYSTEM_ERROR_CODE);
+            System.err.println("Error type 2");// BaseCommand.NO_SYSTEM_ERROR_CODE
             throw new AndroidException("Can't connect to activity manager; is the system running?");
         }
 
-        runStart();
-    }
-
-    private void runStart() throws Exception {
         Intent intent = new Intent();
 
         intent.setComponent(new ComponentName("com.nianticproject.ingress", "com.nianticproject.ingress.PortalAddActivity"));
@@ -146,7 +158,7 @@ public class NewPortal extends BaseCommand {
                                 + "resolve " + intent.toString());
                 break;
             case -2://ActivityManager.START_CLASS_NOT_FOUND:
-                out.println(NO_CLASS_ERROR_CODE);
+                out.println("Error type 3"); //BaseCommand.NO_CLASS_ERROR_CODE
                 out.println("Error: Activity class " +
                         intent.getComponent().toShortString()
                         + " does not exist.");
